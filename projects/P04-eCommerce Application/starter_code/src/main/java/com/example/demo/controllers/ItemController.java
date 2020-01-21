@@ -1,7 +1,10 @@
 package com.example.demo.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +19,8 @@ import com.example.demo.model.persistence.repositories.ItemRepository;
 @RequestMapping("/api/item")
 public class ItemController {
 
+	private Logger log = LoggerFactory.getLogger(ItemController.class);
+
 	@Autowired
 	private ItemRepository itemRepository;
 	
@@ -26,12 +31,23 @@ public class ItemController {
 	
 	@GetMapping("/{id}")
 	public ResponseEntity<Item> getItemById(@PathVariable Long id) {
+		Optional<Item> item = itemRepository.findById(id);
+		if(item.isPresent()) {
+			log.info(String.format("Item with id %d found", id));
+		} else {
+			log.info(String.format("Item with id %d not found", id));
+		}
 		return ResponseEntity.of(itemRepository.findById(id));
 	}
 	
 	@GetMapping("/name/{name}")
 	public ResponseEntity<List<Item>> getItemsByName(@PathVariable String name) {
 		List<Item> items = itemRepository.findByName(name);
+		if (items == null || items.isEmpty()) {
+			log.info(String.format("Item with name %s not found", name));
+		} else {
+			log.info(String.format("Item with name %s found", name));
+		}
 		return items == null || items.isEmpty() ? ResponseEntity.notFound().build()
 				: ResponseEntity.ok(items);
 			
